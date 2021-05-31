@@ -6,6 +6,7 @@ add_executable(
     mediocre_win32 WIN32
     main.cpp
     DeclareDPIAware.manifest
+    track_view.cpp track_view.h
 )
 
 target_compile_options(mediocre_win32 PRIVATE -mwindows)
