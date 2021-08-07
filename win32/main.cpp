@@ -21,9 +21,19 @@ HFONT* title_font;
 
 COLORREF text_color = RGB(0, 0, 0), text_hint_color = RGB(170, 170, 170);
 
-RECT draw_text(const HDC& hdc, RECT rectangle, const char8_t* utf8) {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convert;
-    auto text = convert.from_bytes(reinterpret_cast<const char*>(utf8));
+std::wstring to_wstring(std::u8string_view string) {
+    int size = MultiByteToWideChar(
+        CP_UTF8, 0, (LPCSTR)string.data(), string.length(), NULL, 0
+    );
+    std::wstring wstring(size, 0);
+    MultiByteToWideChar(
+        CP_UTF8, 0, (LPCSTR)string.data(), string.length(), wstring.data(), size
+    );
+    return wstring;
+}
+
+RECT draw_text(const HDC& hdc, RECT rectangle, std::u8string_view utf8) {
+    auto text = to_wstring(utf8);
     SIZE size;
     GetTextExtentPointW(hdc, text.c_str(), text.length(), &size);
     DrawTextW(
@@ -68,14 +78,12 @@ LRESULT CALLBACK window_procedure(
 
                 SetTextColor(hdc, text_color);
                 rectangle =
-                    draw_text(hdc, rectangle, library->get_title(0).c_str());
+                    draw_text(hdc, rectangle, library->get_title(0));
 
                 for (const auto& credit : library->get_credits(0)) {
                     SetTextColor(hdc, text_color);
 
-                    rectangle = draw_text(
-                        hdc, rectangle, credit.name.c_str()
-                    );
+                    rectangle = draw_text(hdc, rectangle, credit.name);
 
                     SetTextColor(hdc, text_hint_color);
 
