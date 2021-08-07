@@ -7,6 +7,7 @@
 #include "mediocre/tracks.h"
 
 struct sqlite3;
+struct sqlite3_stmt;
 
 struct library {
     library();
@@ -15,5 +16,7 @@ struct library {
     std::vector<track_artist_credit> get_credits(unsigned id) const;
 
     sqlite3* database;
+
+    sqlite3_stmt* track_select;
 };
 

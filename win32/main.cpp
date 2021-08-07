@@ -17,6 +17,10 @@ enum children {
 
 library* library;
 
+HFONT* title_font;
+
+COLORREF text_color = RGB(0, 0, 0), text_hint_color = RGB(170, 170, 170);
+
 RECT draw_text(const HDC& hdc, RECT rectangle, const char8_t* utf8) {
     std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convert;
     auto text = convert.from_bytes(reinterpret_cast<const char*>(utf8));
@@ -52,38 +56,41 @@ LRESULT CALLBACK window_procedure(
 
             FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW+1));
 
-            RECT rectangle {
-                .left = 10,
-                .top = 500,
-                .right = 500,
-                .bottom = 550,
-            };
-            /*
-            hFont = CreateFont(20, 0, 0, 0, FW_DONTCARE,
-                FALSE, FALSE, FALSE, ANSI_CHARSET,
-                OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DRAFT_QUALITY, VARIABLE_PITCH,
-                TEXT("Tekton Pro"));*/
+            SelectObject(hdc, *title_font);
 
-            SetTextColor(hdc, RGB(0, 0, 0));
-            rectangle =
-                draw_text(hdc, rectangle, library->get_title(0).c_str());
+            for (int i = 0; i < 20; i++) {
+                RECT rectangle {
+                    .left = 10,
+                    .top = i * 30,
+                    .right = 500,
+                    .bottom = i * 30 + 30,
+                };
 
-            for (const auto& credit : library->get_credits(0)) {
-                SetTextColor(hdc, RGB(0, 0, 0));
+                SetTextColor(hdc, text_color);
+                rectangle =
+                    draw_text(hdc, rectangle, library->get_title(0).c_str());
 
-                rectangle = draw_text(
-                    hdc, rectangle, credit.name.c_str()
-                );
+                for (const auto& credit : library->get_credits(0)) {
+                    SetTextColor(hdc, text_color);
 
-                //SetTextColor(hdc, RGB(128, 128, 128));
+                    rectangle = draw_text(
+                        hdc, rectangle, credit.name.c_str()
+                    );
 
-                rectangle = draw_text(
-                    hdc, rectangle, credit.join_phrase.c_str()
-                );
+                    SetTextColor(hdc, text_hint_color);
+
+                    rectangle = draw_text(
+                        hdc, rectangle, credit.join_phrase.c_str()
+                    );
+                }
             }
 
             EndPaint(hwnd, &ps);
         }
+        return 0;
+
+    case WM_MOUSEMOVE:
+        SetCursor(LoadCursor(NULL, IDC_ARROW));
         return 0;
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -137,6 +144,13 @@ INT WINAPI WinMain(
         hwnd, (HMENU)hello_button, hInstance, NULL
     );
 
+    HFONT font = CreateFont(
+        24, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
+        OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE, TEXT("Arial")
+    );
+    title_font = &font;
+
     CreateWindowExA(
         0,
         "STATIC",
@@ -156,8 +170,6 @@ INT WINAPI WinMain(
     );
 
     ShowWindow(hwnd, nCmdShow);
-
-    std::cout << reinterpret_cast<const char*>(u8"透靈蕐") << std::endl;
 
     // Run the message loop.
 
