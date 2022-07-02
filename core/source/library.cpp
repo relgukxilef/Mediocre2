@@ -4,7 +4,7 @@ library::library() {
 
 }
 
-std::u8string  library::get_title(unsigned) const {
+std::u8string library::get_title(unsigned) const {
     return u8"\u900f\u9748\u8550";
 }
 

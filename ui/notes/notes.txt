@@ -1,0 +1,8 @@
+
+Propagating updates to the ui.
+    Polling
+        When data in the model changes, an update is triggered. This causes the view to be traversed, looking for dirty values. 
+        This only requires the controls to know which values they depend on. Potentially inefficient if there are a lot of controls.
+    Pushing
+        When data is changed in the model, the graph of controls depending on those changes is traversed, updating all dependent controls.
+        This requires a reverse index of dependencies.

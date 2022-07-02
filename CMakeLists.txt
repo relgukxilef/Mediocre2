@@ -9,3 +9,5 @@ add_subdirectory(core)
 add_subdirectory(qwidget)
 add_subdirectory(win32)
 add_subdirectory(gtk)
+
+add_subdirectory(ui)

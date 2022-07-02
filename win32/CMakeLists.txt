@@ -15,4 +15,5 @@ target_compile_options(mediocre_win32 PRIVATE -mwindows)
 target_link_libraries(
     mediocre_win32 PRIVATE
     mediocre_core
+    ui_win32
 )

@@ -3,12 +3,14 @@
 #endif
 
 #include <iostream>
-#include <locale>
-#include <codecvt>
+#include <array>
+#include <charconv>
 
 #include <windows.h>
 #include <winuser.h>
 
+#include "ui/controls.h"
+#include "ui/controls_win32.h"
 #include "mediocre/library.h"
 
 enum children {
@@ -21,23 +23,12 @@ HFONT* title_font;
 
 COLORREF text_color = RGB(0, 0, 0), text_hint_color = RGB(170, 170, 170);
 
-std::wstring to_wstring(std::u8string_view string) {
-    int size = MultiByteToWideChar(
-        CP_UTF8, 0, (LPCSTR)string.data(), string.length(), NULL, 0
-    );
-    std::wstring wstring(size, 0);
-    MultiByteToWideChar(
-        CP_UTF8, 0, (LPCSTR)string.data(), string.length(), wstring.data(), size
-    );
-    return wstring;
-}
-
 RECT draw_text(const HDC& hdc, RECT rectangle, std::u8string_view utf8) {
-    auto text = to_wstring(utf8);
+    auto text = ui::to_wstring(utf8);
     SIZE size;
-    GetTextExtentPointW(hdc, text.c_str(), text.length(), &size);
+    GetTextExtentPointW(hdc, text.c_str(), (int)text.length(), &size);
     DrawTextW(
-        hdc, text.c_str(), text.length(), &rectangle, DT_END_ELLIPSIS
+        hdc, text.c_str(), (int)text.length(), &rectangle, DT_END_ELLIPSIS
     );
     rectangle.left += size.cx;
     return rectangle;
@@ -108,6 +99,8 @@ INT WINAPI WinMain(
     HINSTANCE hInstance, HINSTANCE hPrevInstance,
     PSTR lpCmdLine, INT nCmdShow
 ) {
+    ui::global_instance = hInstance;
+
     struct ::library library;
     ::library = &library;
 
@@ -143,13 +136,10 @@ INT WINAPI WinMain(
         return 0;
     }
 
-    CreateWindowExA(
-        0,
-        "BUTTON",
-        "Hello World!",
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_FLAT,
-        10, 200, 500, 50,
-        hwnd, (HMENU)hello_button, hInstance, NULL
+    ui::window main_window{std::unique_ptr<ui::window_data>(new ui::window_data{hwnd})};
+
+    ui::button hello(
+        &main_window, u8"Hello World!", {10, 200, 500, 50}, hello_button
     );
 
     HFONT font = CreateFont(
